@@ -1,0 +1,15 @@
+[package]
+name = "blocklockcore"  # Name of your Solana program
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+solana-program = "1.18.23"
+
+[lib]
+crate-type = ["cdylib"]  # Required for Solana programs
+path = "src/lib.rs"      # Path to the main library file
+
+[profile.release]
+overflow-checks = true
+
