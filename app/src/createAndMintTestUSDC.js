@@ -13,13 +13,12 @@ async function createAndMintTestUSDC() {
   console.log(`Using wallet public key: ${wallet.publicKey.toBase58()}`);
 
   try {
-    // Create new mint
     const mint = await createMint(
       connection,
       wallet,
       wallet.publicKey,
       null,
-      6 // 6 decimals like USDC
+      6
     );
 
     console.log(`Mint created: ${mint.toBase58()}`);

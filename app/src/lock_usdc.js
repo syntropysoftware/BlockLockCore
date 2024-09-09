@@ -20,7 +20,6 @@ async function lockUSDC() {
 
     anchor.setProvider(provider);
 
-    // Make sure this matches the program ID in your Anchor.toml file
     const programId = new PublicKey('7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC');
     console.log("Program ID:", programId.toString());
 
