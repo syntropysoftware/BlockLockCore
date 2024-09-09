@@ -6,10 +6,7 @@ description = "Created by David DeMayo with BlockLock"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-path = "src/lib.rs"
-
-[profile.release]
-overflow-checks = true
+name = "blocklockcore"
 
 [features]
 no-entrypoint = []
@@ -17,8 +14,9 @@ no-idl = []
 no-log-ix-name = []
 cpi = ["no-entrypoint"]
 default = []
-idl-build = ["anchor-lang/idl-build"]
+idl-build = ["anchor-lang/idl-build", "anchor-spl/idl-build"]
 
 [dependencies]
-solana-program = "1.18.23"
 anchor-lang = { version = "0.30.1", features = ["init-if-needed"] }
+anchor-spl = "0.30.1"
+solana-program = "=1.18.23"
