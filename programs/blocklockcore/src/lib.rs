@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-declare_id!("GaaZCFYBJNkorUPX83t3DedR2AwP4LYcfahx1XYNLdun");
+declare_id!("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
 
 #[program]
 pub mod blocklockcore {
