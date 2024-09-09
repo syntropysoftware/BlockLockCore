@@ -1,22 +1,15 @@
-// src/lib.rs
+use anchor_lang::prelude::*;
 
-use solana_program::{
-    account_info::AccountInfo,
-    entrypoint,
-    entrypoint::ProgramResult,
-    pubkey::Pubkey,
-};
+declare_id!("GaaZCFYBJNkorUPX83t3DedR2AwP4LYcfahx1XYNLdun");
 
-// Declare the entry point of the program
-entrypoint!(process_instruction);
+#[program]
+pub mod blocklockcore {
+    use super::*;
 
-// Define the main function that gets called when the program is executed
-fn process_instruction(
-    _program_id: &Pubkey,
-    _accounts: &[AccountInfo],
-    _instruction_data: &[u8],
-) -> ProgramResult {
-    // Implement your program's logic here
-    Ok(())
+    pub fn initialize(_ctx: Context<Initialize>) -> Result<()> {
+        Ok(())
+    }
 }
 
+#[derive(Accounts)]
+pub struct Initialize {}
