@@ -25,6 +25,6 @@ url = "https://api.testnet.solana.com"
 types = "app/src/idl/"
 
 [toolchain]
-anchor_version = "0.27.0"
-solana_version = "1.18.23"
+anchor_version = "0.30.1"
+solana_version = "1.18.21"
 rust_version = "1.78.0"
