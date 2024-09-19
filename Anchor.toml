@@ -4,9 +4,13 @@ skip-lint = false
 
 [programs.localnet]
 blocklockcore = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
+#blocklockcore = "programs/blocklockcore"
 
 [registry]
-url = "https://api.apr.dev"
+url = "https://registry.anchor-lang.com"
+
+#[registry]
+#url = "https://api.apr.dev"
 
 [provider]
 cluster = "testnet"
