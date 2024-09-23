@@ -1,0 +1,6 @@
+[workspace]
+members = ["programs/blocklockcore"]
+
+[profile.release]
+overflow-checks = true
+
