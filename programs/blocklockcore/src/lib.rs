@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{Token, TokenAccount, Mint};
+use anchor_spl::token::{TokenAccount, Token};
 
 declare_id!("36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH");
 
@@ -46,7 +46,8 @@ pub struct LockTokens<'info> {
     pub user_lock_info: Account<'info, UserLockInfo>,
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
-    pub mint: Account<'info, Mint>,
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    pub mint: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,

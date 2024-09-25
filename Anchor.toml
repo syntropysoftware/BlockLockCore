@@ -6,16 +6,17 @@ skip-lint = false
 #blocklockcore = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
 blocklockcore = "36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH"
 
-#blocklockcore = "programs/blocklockcore"
-
 [registry]
-url = "https://registry.anchor-lang.com"
+#url = "https://registry.anchor-lang.com"
+url = "https://anchor.projectserum.com"
 
 #[registry]
 #url = "https://api.apr.dev"
 
 [provider]
-cluster = "testnet"
+#cluster = "testnet"
+#wallet = "/root/.config/solana/id.json"
+cluster = "localnet"
 wallet = "/root/.config/solana/id.json"
 
 [scripts]
@@ -35,4 +36,7 @@ anchor_version = "0.30.1"
 #solana_version = "2.0.10"
 rust_version = "1.81.0"
 solana_version = "1.18.24"
+
+[[test.validator.clone]]
+address = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
 

@@ -1,8 +1,7 @@
 const { Connection, PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { Program, AnchorProvider, BN, Wallet } = require('@project-serum/anchor');
-const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAccount } = require("@solana/spl-token");
+const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAccount, createMint, createAssociatedTokenAccount, mintTo } = require("@solana/spl-token");
 const fs = require('fs');
-const path = require('path');
 
 const IDL = {
   version: "0.1.0",
@@ -37,9 +36,39 @@ const IDL = {
   ],
 };
 
+async function setupLocalEnvironment(connection, payer) {
+    const mint = await createMint(
+        connection,
+        payer,
+        payer.publicKey,
+        null,
+        6
+    );
+    console.log("Local USDC Mint created:", mint.toBase58());
+
+    const tokenAccount = await createAssociatedTokenAccount(
+        connection,
+        payer,
+        mint,
+        payer.publicKey
+    );
+    console.log("User Token Account created:", tokenAccount.toBase58());
+
+    await mintTo(
+        connection,
+        payer,
+        mint,
+        tokenAccount,
+        payer,
+        1000000000
+    );
+
+    return { mint, tokenAccount };
+}
+
 async function lockUSDC() {
-    const connection = new Connection("https://api.testnet.solana.com", "confirmed");
-    
+    const connection = new Connection("http://localhost:8899", "confirmed");
+
     let secretKeyString;
     try {
         secretKeyString = fs.readFileSync('/root/.config/solana/id.json', 'utf8');
@@ -56,7 +85,7 @@ async function lockUSDC() {
     console.log("Wallet public key:", wallet.publicKey.toString());
 
     const provider = new AnchorProvider(
-        connection, 
+        connection,
         wallet,
         { commitment: 'confirmed' }
     );
@@ -72,17 +101,7 @@ async function lockUSDC() {
         return;
     }
 
-    const usdcMint = new PublicKey("GWLqo7KKsSv9uRZxDXPvspFz3jKwuuxfkL3tounsMeBb");
-    console.log("USDC Mint:", usdcMint.toString());
-
-    let userTokenAccount;
-    try {
-        userTokenAccount = await getAssociatedTokenAddress(usdcMint, wallet.publicKey);
-    } catch (err) {
-        console.error("Error getting associated token address:", err);
-        return;
-    }
-    console.log("User Token Account:", userTokenAccount.toString());
+    const { mint, tokenAccount } = await setupLocalEnvironment(connection, keypair);
 
     let userLockInfoPDA, bumpSeed;
     try {
@@ -96,12 +115,14 @@ async function lockUSDC() {
     }
     console.log("User Lock Info PDA:", userLockInfoPDA.toString());
 
+    const customTokenProgramId = new PublicKey("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
+
     try {
         const solBalance = await connection.getBalance(wallet.publicKey);
-        console.log(`SOL Balance on Testnet: ${solBalance / LAMPORTS_PER_SOL} SOL`);
+        console.log(`SOL Balance: ${solBalance / LAMPORTS_PER_SOL} SOL`);
 
-        const tokenAccount = await getAccount(connection, userTokenAccount);
-        const balance = Number(tokenAccount.amount) / 10**6;
+        const tokenAccountInfo = await getAccount(connection, tokenAccount);
+        const balance = Number(tokenAccountInfo.amount) / 10**6;
 
         console.log("Current USDC balance:", balance);
 
@@ -118,10 +139,10 @@ async function lockUSDC() {
             .accounts({
                 user: wallet.publicKey,
                 userLockInfo: userLockInfoPDA,
-                userTokenAccount: userTokenAccount,
-                mint: usdcMint,
+                userTokenAccount: tokenAccount,
+                mint: mint,
                 systemProgram: SystemProgram.programId,
-                tokenProgram: TOKEN_PROGRAM_ID,
+                tokenProgram: customTokenProgramId,
                 rent: SYSVAR_RENT_PUBKEY,
             })
             .transaction();
@@ -139,3 +160,4 @@ async function lockUSDC() {
 }
 
 lockUSDC().catch(console.error);
+
