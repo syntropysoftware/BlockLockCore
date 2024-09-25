@@ -1,7 +1,6 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{self, Token, TokenAccount};
+use anchor_spl::token::{Token, TokenAccount, Mint};
 
-//declare_id!("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
 declare_id!("36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH");
 
 #[program]
@@ -12,21 +11,9 @@ pub mod blocklockcore {
         let clock = Clock::get()?;
         let lock_duration = 24 * 60 * 60; // 24 hours in seconds
 
-        ctx.accounts.vault.amount = amount;
-        ctx.accounts.vault.lock_time = clock.unix_timestamp + lock_duration;
-        ctx.accounts.vault.owner = ctx.accounts.user.key();
-
-        token::transfer(
-            CpiContext::new(
-                ctx.accounts.token_program.to_account_info(),
-                token::Transfer {
-                    from: ctx.accounts.user_token_account.to_account_info(),
-                    to: ctx.accounts.vault_token_account.to_account_info(),
-                    authority: ctx.accounts.user.to_account_info(),
-                },
-            ),
-            amount,
-        )?;
+        ctx.accounts.user_lock_info.locked_amount = amount;
+        ctx.accounts.user_lock_info.unlock_time = clock.unix_timestamp + lock_duration;
+        ctx.accounts.user_lock_info.owner = ctx.accounts.user.key();
 
         Ok(())
     }
@@ -34,27 +21,12 @@ pub mod blocklockcore {
     pub fn unlock_tokens(ctx: Context<UnlockTokens>) -> Result<()> {
         let clock = Clock::get()?;
         require!(
-            clock.unix_timestamp >= ctx.accounts.vault.lock_time,
+            clock.unix_timestamp >= ctx.accounts.user_lock_info.unlock_time,
             BlocklockError::LockNotExpired
         );
 
-        let amount = ctx.accounts.vault_token_account.amount;
-
-        token::transfer(
-            CpiContext::new_with_signer(
-                ctx.accounts.token_program.to_account_info(),
-                token::Transfer {
-                    from: ctx.accounts.vault_token_account.to_account_info(),
-                    to: ctx.accounts.user_token_account.to_account_info(),
-                    authority: ctx.accounts.vault.to_account_info(),
-                },
-                &[&[b"vault", ctx.accounts.user.key().as_ref(), &[ctx.bumps.vault]]],
-            ),
-            amount,
-        )?;
-
-        ctx.accounts.vault.amount = 0;
-        ctx.accounts.vault.lock_time = 0;
+        ctx.accounts.user_lock_info.locked_amount = 0;
+        ctx.accounts.user_lock_info.unlock_time = 0;
 
         Ok(())
     }
@@ -65,23 +37,16 @@ pub struct LockTokens<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
     #[account(
-        init,
+        init_if_needed,
         payer = user,
         space = 8 + 8 + 8 + 32,
-        seeds = [b"vault", user.key().as_ref()],
+        seeds = [b"user_lock_info", user.key().as_ref()],
         bump
     )]
-    pub vault: Account<'info, Vault>,
+    pub user_lock_info: Account<'info, UserLockInfo>,
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
-    #[account(
-        init,
-        payer = user,
-        token::mint = mint,
-        token::authority = vault,
-    )]
-    pub vault_token_account: Account<'info, TokenAccount>,
-    pub mint: Account<'info, token::Mint>,
+    pub mint: Account<'info, Mint>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -93,29 +58,21 @@ pub struct UnlockTokens<'info> {
     pub user: Signer<'info>,
     #[account(
         mut,
-        seeds = [b"vault", user.key().as_ref()],
+        seeds = [b"user_lock_info", user.key().as_ref()],
         bump,
         has_one = owner @ BlocklockError::InvalidOwner,
     )]
-    pub vault: Account<'info, Vault>,
+    pub user_lock_info: Account<'info, UserLockInfo>,
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
-    #[account(
-        mut,
-        token::mint = mint,
-        token::authority = vault,
-    )]
-    pub vault_token_account: Account<'info, TokenAccount>,
-    pub mint: Account<'info, token::Mint>,
-    pub token_program: Program<'info, Token>,
-    /// CHECK: This is the owner of the vault, verified by the `has_one` constraint
+    /// CHECK: This is the owner of the user_lock_info, verified by the `has_one` constraint
     pub owner: UncheckedAccount<'info>,
 }
 
 #[account]
-pub struct Vault {
-    pub amount: u64,
-    pub lock_time: i64,
+pub struct UserLockInfo {
+    pub locked_amount: u64,
+    pub unlock_time: i64,
     pub owner: Pubkey,
 }
 
@@ -126,3 +83,4 @@ pub enum BlocklockError {
     #[msg("Invalid owner")]
     InvalidOwner,
 }
+

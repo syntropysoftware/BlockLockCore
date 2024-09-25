@@ -4,3 +4,11 @@ members = ["programs/blocklockcore"]
 [profile.release]
 overflow-checks = true
 
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+idl-build = ["anchor-lang/idl-build"]
+

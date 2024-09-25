@@ -1,7 +1,8 @@
-const { Connection, PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, Transaction } = require('@solana/web3.js');
+const { Connection, PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { Program, AnchorProvider, BN, Wallet } = require('@project-serum/anchor');
-const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress } = require("@solana/spl-token");
+const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAccount } = require("@solana/spl-token");
 const fs = require('fs');
+const path = require('path');
 
 const IDL = {
   version: "0.1.0",
@@ -11,15 +12,27 @@ const IDL = {
       name: "lockTokens",
       accounts: [
         { name: "user", isMut: true, isSigner: true },
-        { name: "vault", isMut: true, isSigner: false },
+        { name: "userLockInfo", isMut: true, isSigner: false },
         { name: "userTokenAccount", isMut: true, isSigner: false },
-        { name: "vaultTokenAccount", isMut: true, isSigner: false },
         { name: "mint", isMut: false, isSigner: false },
         { name: "systemProgram", isMut: false, isSigner: false },
         { name: "tokenProgram", isMut: false, isSigner: false },
         { name: "rent", isMut: false, isSigner: false },
       ],
       args: [{ name: "amount", type: "u64" }],
+    },
+  ],
+  accounts: [
+    {
+      name: "UserLockInfo",
+      type: {
+        kind: "struct",
+        fields: [
+          { name: "lockedAmount", type: "u64" },
+          { name: "unlockTime", type: "i64" },
+          { name: "owner", type: "publicKey" },
+        ],
+      },
     },
   ],
 };
@@ -48,7 +61,6 @@ async function lockUSDC() {
         { commitment: 'confirmed' }
     );
 
-    //const programId = new PublicKey('7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC');
     const programId = new PublicKey('36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH');
     console.log("Program ID:", programId.toString());
 
@@ -63,37 +75,33 @@ async function lockUSDC() {
     const usdcMint = new PublicKey("GWLqo7KKsSv9uRZxDXPvspFz3jKwuuxfkL3tounsMeBb");
     console.log("USDC Mint:", usdcMint.toString());
 
-    const userTokenAccount = new PublicKey("6tgTS3t8uKQDvXQsDLgKUcRZ7F4HJp8aezx9ynVu96HM");
+    let userTokenAccount;
+    try {
+        userTokenAccount = await getAssociatedTokenAddress(usdcMint, wallet.publicKey);
+    } catch (err) {
+        console.error("Error getting associated token address:", err);
+        return;
+    }
     console.log("User Token Account:", userTokenAccount.toString());
 
-    let vaultPDA, bumpSeed;
+    let userLockInfoPDA, bumpSeed;
     try {
-        [vaultPDA, bumpSeed] = await PublicKey.findProgramAddress(
-            [Buffer.from("vault"), wallet.publicKey.toBuffer()],
+        [userLockInfoPDA, bumpSeed] = await PublicKey.findProgramAddress(
+            [Buffer.from("user_lock_info"), wallet.publicKey.toBuffer()],
             program.programId
         );
     } catch (err) {
         console.error("Error finding program address:", err);
         return;
     }
-    console.log("Vault PDA:", vaultPDA.toString());
-
-    let vaultTokenAccount;
-    try {
-        vaultTokenAccount = await getAssociatedTokenAddress(
-            usdcMint,
-            vaultPDA,
-            true
-        );
-    } catch (err) {
-        console.error("Error getting associated token address:", err);
-        return;
-    }
-    console.log("Vault Token Account:", vaultTokenAccount.toString());
+    console.log("User Lock Info PDA:", userLockInfoPDA.toString());
 
     try {
-        const tokenAccount = await connection.getTokenAccountBalance(userTokenAccount);
-        const balance = tokenAccount.value.uiAmount;
+        const solBalance = await connection.getBalance(wallet.publicKey);
+        console.log(`SOL Balance on Testnet: ${solBalance / LAMPORTS_PER_SOL} SOL`);
+
+        const tokenAccount = await getAccount(connection, userTokenAccount);
+        const balance = Number(tokenAccount.amount) / 10**6;
 
         console.log("Current USDC balance:", balance);
 
@@ -109,9 +117,8 @@ async function lockUSDC() {
         const tx = await program.methods.lockTokens(new BN(amountToLock * 10**6))
             .accounts({
                 user: wallet.publicKey,
-                vault: vaultPDA,
+                userLockInfo: userLockInfoPDA,
                 userTokenAccount: userTokenAccount,
-                vaultTokenAccount: vaultTokenAccount,
                 mint: usdcMint,
                 systemProgram: SystemProgram.programId,
                 tokenProgram: TOKEN_PROGRAM_ID,

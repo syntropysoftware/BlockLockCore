@@ -32,18 +32,27 @@ export type Blocklockcore = {
           "signer": true
         },
         {
-          "name": "vault",
+          "name": "userLockInfo",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  118,
-                  97,
                   117,
+                  115,
+                  101,
+                  114,
+                  95,
                   108,
-                  116
+                  111,
+                  99,
+                  107,
+                  95,
+                  105,
+                  110,
+                  102,
+                  111
                 ]
               },
               {
@@ -56,11 +65,6 @@ export type Blocklockcore = {
         {
           "name": "userTokenAccount",
           "writable": true
-        },
-        {
-          "name": "vaultTokenAccount",
-          "writable": true,
-          "signer": true
         },
         {
           "name": "mint"
@@ -104,18 +108,27 @@ export type Blocklockcore = {
           "signer": true
         },
         {
-          "name": "vault",
+          "name": "userLockInfo",
           "writable": true,
           "pda": {
             "seeds": [
               {
                 "kind": "const",
                 "value": [
-                  118,
-                  97,
                   117,
+                  115,
+                  101,
+                  114,
+                  95,
                   108,
-                  116
+                  111,
+                  99,
+                  107,
+                  95,
+                  105,
+                  110,
+                  102,
+                  111
                 ]
               },
               {
@@ -130,20 +143,9 @@ export type Blocklockcore = {
           "writable": true
         },
         {
-          "name": "vaultTokenAccount",
-          "writable": true
-        },
-        {
-          "name": "mint"
-        },
-        {
-          "name": "tokenProgram",
-          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
-        },
-        {
           "name": "owner",
           "relations": [
-            "vault"
+            "userLockInfo"
           ]
         }
       ],
@@ -152,16 +154,16 @@ export type Blocklockcore = {
   ],
   "accounts": [
     {
-      "name": "vault",
+      "name": "userLockInfo",
       "discriminator": [
-        211,
-        8,
-        232,
+        125,
+        0,
         43,
-        2,
-        152,
-        117,
-        119
+        190,
+        172,
+        84,
+        106,
+        88
       ]
     }
   ],
@@ -179,16 +181,16 @@ export type Blocklockcore = {
   ],
   "types": [
     {
-      "name": "vault",
+      "name": "userLockInfo",
       "type": {
         "kind": "struct",
         "fields": [
           {
-            "name": "amount",
+            "name": "lockedAmount",
             "type": "u64"
           },
           {
-            "name": "lockTime",
+            "name": "unlockTime",
             "type": "i64"
           },
           {
