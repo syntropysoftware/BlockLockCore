@@ -1,7 +1,8 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Token, TokenAccount};
 
-declare_id!("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
+//declare_id!("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
+declare_id!("36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH");
 
 #[program]
 pub mod blocklockcore {

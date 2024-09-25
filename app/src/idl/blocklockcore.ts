@@ -5,7 +5,7 @@
  * IDL can be found at `target/idl/blocklockcore.json`.
  */
 export type Blocklockcore = {
-  "address": "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC",
+  "address": "36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH",
   "metadata": {
     "name": "blocklockcore",
     "version": "0.1.0",

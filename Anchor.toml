@@ -3,7 +3,9 @@ seeds = false
 skip-lint = false
 
 [programs.localnet]
-blocklockcore = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
+#blocklockcore = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
+blocklockcore = "36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH"
+
 #blocklockcore = "programs/blocklockcore"
 
 [registry]

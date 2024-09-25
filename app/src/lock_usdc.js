@@ -48,7 +48,8 @@ async function lockUSDC() {
         { commitment: 'confirmed' }
     );
 
-    const programId = new PublicKey('7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC');
+    //const programId = new PublicKey('7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC');
+    const programId = new PublicKey('36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH');
     console.log("Program ID:", programId.toString());
 
     let program;
