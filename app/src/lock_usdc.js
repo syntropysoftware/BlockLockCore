@@ -115,7 +115,8 @@ async function lockUSDC() {
     }
     console.log("User Lock Info PDA:", userLockInfoPDA.toString());
 
-    const customTokenProgramId = new PublicKey("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
+    //const customTokenProgramId = new PublicKey("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
+    const customTokenProgramId = new PublicKey("36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH");
 
     try {
         const solBalance = await connection.getBalance(wallet.publicKey);

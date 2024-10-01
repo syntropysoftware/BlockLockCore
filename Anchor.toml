@@ -38,5 +38,5 @@ rust_version = "1.81.0"
 solana_version = "1.18.24"
 
 [[test.validator.clone]]
-address = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
-
+#address = "7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC"
+address = "36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH"
