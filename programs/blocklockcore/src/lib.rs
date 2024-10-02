@@ -47,7 +47,7 @@ pub struct LockTokens<'info> {
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
     /// CHECK: This is not dangerous because we don't read or write from this account
-    pub mint: UncheckedAccount<'info>,
+    pub mint: UncheckedAccount<'info>, // The SPL token mint (e.g., USDC)
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -84,4 +84,3 @@ pub enum BlocklockError {
     #[msg("Invalid owner")]
     InvalidOwner,
 }
-
