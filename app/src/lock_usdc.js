@@ -1,39 +1,42 @@
 const { Connection, PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } = require('@solana/web3.js');
 const { Program, AnchorProvider, BN, Wallet } = require('@project-serum/anchor');
-const { TOKEN_PROGRAM_ID, getAssociatedTokenAddress, getAccount, createMint, createAssociatedTokenAccount, mintTo } = require("@solana/spl-token");
+const { getAssociatedTokenAddress, getAccount, createMint, createAssociatedTokenAccount, mintTo } = require("@solana/spl-token");
 const fs = require('fs');
 
+// Add the TOKEN_PROGRAM_ID definition
+const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+
 const IDL = {
-  version: "0.1.0",
-  name: "blocklockcore",
-  instructions: [
-    {
-      name: "lockTokens",
-      accounts: [
-        { name: "user", isMut: true, isSigner: true },
-        { name: "userLockInfo", isMut: true, isSigner: false },
-        { name: "userTokenAccount", isMut: true, isSigner: false },
-        { name: "mint", isMut: false, isSigner: false },
-        { name: "systemProgram", isMut: false, isSigner: false },
-        { name: "tokenProgram", isMut: false, isSigner: false },
-        { name: "rent", isMut: false, isSigner: false },
-      ],
-      args: [{ name: "amount", type: "u64" }],
-    },
-  ],
-  accounts: [
-    {
-      name: "UserLockInfo",
-      type: {
-        kind: "struct",
-        fields: [
-          { name: "lockedAmount", type: "u64" },
-          { name: "unlockTime", type: "i64" },
-          { name: "owner", type: "publicKey" },
-        ],
-      },
-    },
-  ],
+    version: "0.1.0",
+    name: "blocklockcore",
+    instructions: [
+        {
+            name: "lockTokens",
+            accounts: [
+                { name: "user", isMut: true, isSigner: true },
+                { name: "userLockInfo", isMut: true, isSigner: false },
+                { name: "userTokenAccount", isMut: true, isSigner: false },
+                { name: "mint", isMut: false, isSigner: false },
+                { name: "systemProgram", isMut: false, isSigner: false },
+                { name: "tokenProgram", isMut: false, isSigner: false },
+                { name: "rent", isMut: false, isSigner: false },
+            ],
+            args: [{ name: "amount", type: "u64" }],
+        },
+    ],
+    accounts: [
+        {
+            name: "UserLockInfo",
+            type: {
+                kind: "struct",
+                fields: [
+                    { name: "lockedAmount", type: "u64" },
+                    { name: "unlockTime", type: "i64" },
+                    { name: "owner", type: "publicKey" },
+                ],
+            },
+        },
+    ],
 };
 
 async function setupLocalEnvironment(connection, payer) {
@@ -67,7 +70,8 @@ async function setupLocalEnvironment(connection, payer) {
 }
 
 async function lockUSDC() {
-    const connection = new Connection("http://localhost:8899", "confirmed");
+    // Change the connection to testnet
+    const connection = new Connection("https://api.testnet.solana.com", "confirmed");
 
     let secretKeyString;
     try {
@@ -115,15 +119,15 @@ async function lockUSDC() {
     }
     console.log("User Lock Info PDA:", userLockInfoPDA.toString());
 
-    //const customTokenProgramId = new PublicKey("7wizuPjcftZwL5tu9KKiEbV5KfqMWbhDLSUQuXkB8GwC");
-    const customTokenProgramId = new PublicKey("36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH");
+    // Use the standard TOKEN_PROGRAM_ID
+    const customTokenProgramId = TOKEN_PROGRAM_ID;
 
     try {
         const solBalance = await connection.getBalance(wallet.publicKey);
         console.log(`SOL Balance: ${solBalance / LAMPORTS_PER_SOL} SOL`);
 
         const tokenAccountInfo = await getAccount(connection, tokenAccount);
-        const balance = Number(tokenAccountInfo.amount) / 10**6;
+        const balance = Number(tokenAccountInfo.amount) / 10 ** 6;
 
         console.log("Current USDC balance:", balance);
 
@@ -136,14 +140,14 @@ async function lockUSDC() {
 
         console.log(`Locking ${amountToLock} USDC for 24 hours...`);
 
-        const tx = await program.methods.lockTokens(new BN(amountToLock * 10**6))
+        const tx = await program.methods.lockTokens(new BN(amountToLock * 10 ** 6))
             .accounts({
                 user: wallet.publicKey,
                 userLockInfo: userLockInfoPDA,
                 userTokenAccount: tokenAccount,
                 mint: mint,
                 systemProgram: SystemProgram.programId,
-                tokenProgram: customTokenProgramId,
+                tokenProgram: customTokenProgramId, // Use the standard TOKEN_PROGRAM_ID here
                 rent: SYSVAR_RENT_PUBKEY,
             })
             .transaction();
@@ -161,4 +165,3 @@ async function lockUSDC() {
 }
 
 lockUSDC().catch(console.error);
-

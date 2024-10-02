@@ -3,10 +3,13 @@ import { Program } from "@project-serum/anchor";
 import { Blocklockcore } from "../target/types/blocklockcore";
 import { TOKEN_PROGRAM_ID, createMint, createAccount, mintTo } from "@solana/spl-token";
 import { PublicKey } from '@solana/web3.js';
+import { assert } from 'chai'; 
 
 describe("blocklockcore", () => {
   const provider = anchor.AnchorProvider.env();
   anchor.setProvider(provider);
+
+  console.log(anchor.workspace); // Debugging log
 
   const program = anchor.workspace.Blocklockcore as Program<Blocklockcore>;
 
@@ -14,13 +17,8 @@ describe("blocklockcore", () => {
   let userTokenAccount: PublicKey;
 
   before(async () => {
-    // Create a new token mint
     mint = await createMint(provider.connection, provider.wallet.payer, provider.wallet.publicKey, null, 9);
-
-    // Create a token account for the user
     userTokenAccount = await createAccount(provider.connection, provider.wallet.payer, mint, provider.wallet.publicKey);
-
-    // Mint some tokens to the user's account
     await mintTo(provider.connection, provider.wallet.payer, mint, userTokenAccount, provider.wallet.payer, 1000000000);
   });
 
@@ -44,8 +42,6 @@ describe("blocklockcore", () => {
       .rpc();
 
     console.log("Lock transaction signature", tx);
-
-    // check if the tokens were locked correctly
   });
 
   it("Fails to unlock tokens before lock period", async () => {
@@ -69,6 +65,5 @@ describe("blocklockcore", () => {
       assert.include(error.message, "The lock period has not expired yet");
     }
   });
-
 });
 
