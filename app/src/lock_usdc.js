@@ -1,6 +1,24 @@
-const { Connection, PublicKey, Keypair, SystemProgram, SYSVAR_RENT_PUBKEY, LAMPORTS_PER_SOL } = require('@solana/web3.js');
-const { Program, AnchorProvider, BN, Wallet } = require('@project-serum/anchor');
-const { getAssociatedTokenAddress, getAccount, createMint, createAssociatedTokenAccount, mintTo } = require("@solana/spl-token");
+const {
+    Connection,
+    PublicKey,
+    Keypair,
+    SystemProgram,
+    SYSVAR_RENT_PUBKEY,
+    LAMPORTS_PER_SOL,
+} = require('@solana/web3.js');
+const {
+    Program,
+    AnchorProvider,
+    BN,
+    Wallet,
+} = require('@project-serum/anchor');
+const {
+    getAssociatedTokenAddress,
+    getAccount,
+    createMint,
+    createAssociatedTokenAccount,
+    mintTo,
+} = require("@solana/spl-token");
 const fs = require('fs');
 
 // Add the TOKEN_PROGRAM_ID definition
@@ -163,5 +181,35 @@ async function lockUSDC() {
         }
     }
 }
+async function testTransferUSDC() {
+    const connection = new Connection("https://api.testnet.solana.com", "confirmed");
+
+    // Replace with your own secret key path
+    const secretKeyString = fs.readFileSync('/root/.config/solana/id.json', 'utf8');
+    const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
+    const keypair = Keypair.fromSecretKey(secretKey);
+    const wallet = new Wallet(keypair);
+
+    const tokenAccount = new PublicKey("6tgTS3t8uKQDvXQsDLgKUcRZ7F4HJp8aezx9ynVu96HM"); // Your token account
+    const mintAddress = new PublicKey("GWLqo7KKsSv9uRZxDXPvspFz3jKwuuxfkL3tounsMeBb"); // Your mint address
+
+    try {
+        const transferTx = await mintTo(
+            connection,
+            wallet.payer,
+            mintAddress,
+            tokenAccount,
+            wallet.publicKey,
+            1000000 // Minting 1 USDC (considering 6 decimals)
+        );
+
+        console.log("Transfer Transaction Signature:", transferTx);
+    } catch (error) {
+        console.error("Error during transfer:", error);
+    }
+}
+
+testTransferUSDC().catch(console.error);
+
 
 lockUSDC().catch(console.error);
