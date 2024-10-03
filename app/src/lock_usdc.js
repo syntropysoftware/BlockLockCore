@@ -21,8 +21,8 @@ const {
 } = require("@solana/spl-token");
 const fs = require('fs');
 
-// Add the TOKEN_PROGRAM_ID definition
 const TOKEN_PROGRAM_ID = new PublicKey("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
+const ACCOUNT_PUBLIC_KEY = 'DuYhELsTo7BXWc5XgzGAAd62TXt3vuqxqfRBAkP6HuEY';
 
 const IDL = {
     version: "0.1.0",
@@ -56,6 +56,17 @@ const IDL = {
         },
     ],
 };
+
+async function checkAccountOwnership(accountPublicKey, connection) {
+    const accountInfo = await connection.getAccountInfo(new PublicKey(accountPublicKey));
+    if (accountInfo) {
+        console.log('Owner Program ID:', accountInfo.owner.toString());
+        const balance = await connection.getBalance(new PublicKey(accountPublicKey));
+        console.log(`Account Balance: ${balance / LAMPORTS_PER_SOL} SOL`);
+    } else {
+        console.log('Account not found');
+    }
+}
 
 async function setupLocalEnvironment(connection, payer) {
     const mint = await createMint(
@@ -91,6 +102,9 @@ async function lockUSDC() {
     // Change the connection to testnet
     const connection = new Connection("https://api.testnet.solana.com", "confirmed");
 
+    // Check account ownership and balance
+    await checkAccountOwnership(ACCOUNT_PUBLIC_KEY, connection);
+
     let secretKeyString;
     try {
         secretKeyString = fs.readFileSync('/root/.config/solana/id.json', 'utf8');
@@ -101,7 +115,6 @@ async function lockUSDC() {
 
     const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
     const keypair = Keypair.fromSecretKey(secretKey);
-
     const wallet = new Wallet(keypair);
 
     console.log("Wallet public key:", wallet.publicKey.toString());
@@ -123,6 +136,7 @@ async function lockUSDC() {
         return;
     }
 
+    // Setup environment for testing
     const { mint, tokenAccount } = await setupLocalEnvironment(connection, keypair);
 
     let userLockInfoPDA, bumpSeed;
@@ -136,9 +150,6 @@ async function lockUSDC() {
         return;
     }
     console.log("User Lock Info PDA:", userLockInfoPDA.toString());
-
-    // Use the standard TOKEN_PROGRAM_ID
-    const customTokenProgramId = TOKEN_PROGRAM_ID;
 
     try {
         const solBalance = await connection.getBalance(wallet.publicKey);
@@ -154,24 +165,22 @@ async function lockUSDC() {
             return;
         }
 
-        const amountToLock = balance * 0.1;
-
+        const amountToLock = balance * 0.1; // Locking 10% of current balance
         console.log(`Locking ${amountToLock} USDC for 24 hours...`);
 
         const tx = await program.methods.lockTokens(new BN(amountToLock * 10 ** 6))
             .accounts({
                 user: wallet.publicKey,
                 userLockInfo: userLockInfoPDA,
-                userTokenAccount: tokenAccount,
+                userTokenAccount: tokenAccount, // Locking directly from the existing token account
                 mint: mint,
                 systemProgram: SystemProgram.programId,
-                tokenProgram: customTokenProgramId, // Use the standard TOKEN_PROGRAM_ID here
+                tokenProgram: TOKEN_PROGRAM_ID,
                 rent: SYSVAR_RENT_PUBKEY,
             })
             .transaction();
 
         const txSignature = await provider.sendAndConfirm(tx);
-
         console.log("Transaction sent. Signature:", txSignature);
         console.log("USDC locked successfully!");
     } catch (error) {
@@ -181,17 +190,17 @@ async function lockUSDC() {
         }
     }
 }
+
 async function testTransferUSDC() {
     const connection = new Connection("https://api.testnet.solana.com", "confirmed");
 
-    // Replace with your own secret key path
     const secretKeyString = fs.readFileSync('/root/.config/solana/id.json', 'utf8');
     const secretKey = Uint8Array.from(JSON.parse(secretKeyString));
     const keypair = Keypair.fromSecretKey(secretKey);
     const wallet = new Wallet(keypair);
 
-    const tokenAccount = new PublicKey("6tgTS3t8uKQDvXQsDLgKUcRZ7F4HJp8aezx9ynVu96HM"); // Your token account
-    const mintAddress = new PublicKey("GWLqo7KKsSv9uRZxDXPvspFz3jKwuuxfkL3tounsMeBb"); // Your mint address
+    const tokenAccount = new PublicKey("6tgTS3t8uKQDvXQsDLgKUcRZ7F4HJp8aezx9ynVu96HM"); // Token Account
+    const mintAddress = new PublicKey("GWLqo7KKsSv9uRZxDXPvspFz3jKwuuxfkL3tounsMeBb"); // Mint Address
 
     try {
         const transferTx = await mintTo(
@@ -210,6 +219,4 @@ async function testTransferUSDC() {
 }
 
 testTransferUSDC().catch(console.error);
-
-
 lockUSDC().catch(console.error);
