@@ -99,10 +99,8 @@ async function setupLocalEnvironment(connection, payer) {
 }
 
 async function lockUSDC() {
-    // Change the connection to testnet
     const connection = new Connection("https://api.testnet.solana.com", "confirmed");
 
-    // Check account ownership and balance
     await checkAccountOwnership(ACCOUNT_PUBLIC_KEY, connection);
 
     let secretKeyString;
@@ -136,7 +134,6 @@ async function lockUSDC() {
         return;
     }
 
-    // Setup environment for testing
     const { mint, tokenAccount } = await setupLocalEnvironment(connection, keypair);
 
     let userLockInfoPDA, bumpSeed;
