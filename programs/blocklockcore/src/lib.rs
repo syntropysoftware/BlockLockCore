@@ -1,5 +1,5 @@
 use anchor_lang::prelude::*;
-use anchor_spl::token::{TokenAccount, Token};
+use anchor_spl::token::{TokenAccount, Token, Mint};
 
 declare_id!("36c5ZN4fq7qm13PyEAP4X7er1ZRgzik9SyvajxDLiAQH");
 
@@ -8,6 +8,12 @@ pub mod blocklockcore {
     use super::*;
 
     pub fn lock_tokens(ctx: Context<LockTokens>, amount: u64) -> Result<()> {
+        // Verify the mint
+        require!(
+            ctx.accounts.mint.key() == ctx.accounts.user_token_account.mint,
+            BlocklockError::InvalidMint
+        );
+
         let clock = Clock::get()?;
         let lock_duration = 24 * 60 * 60; // 24 hours in seconds
 
@@ -46,8 +52,7 @@ pub struct LockTokens<'info> {
     pub user_lock_info: Account<'info, UserLockInfo>,
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
-    /// CHECK: This is not dangerous because we don't read or write from this account
-    pub mint: UncheckedAccount<'info>, // The SPL token mint (e.g., USDC)
+    pub mint: Account<'info, Mint>,
     pub system_program: Program<'info, System>,
     pub token_program: Program<'info, Token>,
     pub rent: Sysvar<'info, Rent>,
@@ -66,6 +71,8 @@ pub struct UnlockTokens<'info> {
     pub user_lock_info: Account<'info, UserLockInfo>,
     #[account(mut)]
     pub user_token_account: Account<'info, TokenAccount>,
+    pub mint: Account<'info, Mint>,
+    pub token_program: Program<'info, Token>,
     /// CHECK: This is the owner of the user_lock_info, verified by the `has_one` constraint
     pub owner: UncheckedAccount<'info>,
 }
@@ -83,4 +90,7 @@ pub enum BlocklockError {
     LockNotExpired,
     #[msg("Invalid owner")]
     InvalidOwner,
+    #[msg("Invalid mint")]
+    InvalidMint,
 }
+
