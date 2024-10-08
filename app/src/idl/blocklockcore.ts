@@ -143,6 +143,13 @@ export type Blocklockcore = {
           "writable": true
         },
         {
+          "name": "mint"
+        },
+        {
+          "name": "tokenProgram",
+          "address": "TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA"
+        },
+        {
           "name": "owner",
           "relations": [
             "userLockInfo"
@@ -177,6 +184,11 @@ export type Blocklockcore = {
       "code": 6001,
       "name": "invalidOwner",
       "msg": "Invalid owner"
+    },
+    {
+      "code": 6002,
+      "name": "invalidMint",
+      "msg": "Invalid mint"
     }
   ],
   "types": [
